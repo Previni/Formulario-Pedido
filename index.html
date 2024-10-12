@@ -161,17 +161,36 @@
                 },
                 body: JSON.stringify(formData)
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw response;
+                }
+                return response.text(); // Mudamos para text() em vez de json()
+            })
             .then(data => {
-                console.log('Sucesso:', data);
-                alert('Pedido enviado com sucesso!');
-                this.reset();
-                document.getElementById('produtosContainer').innerHTML = '';
-                adicionarLinhaProduto();
+                console.log('Resposta completa:', data);
+                try {
+                    const jsonData = JSON.parse(data);
+                    console.log('Dados JSON:', jsonData);
+                    alert('Pedido enviado com sucesso!');
+                    this.reset();
+                    document.getElementById('produtosContainer').innerHTML = '';
+                    adicionarLinhaProduto();
+                } catch (e) {
+                    console.error('Erro ao parsear JSON:', e);
+                    alert('Pedido enviado, mas houve um problema ao processar a resposta.');
+                }
             })
             .catch((error) => {
-                console.error('Erro:', error);
-                alert('Erro ao enviar o pedido. Por favor, tente novamente.');
+                console.error('Erro detalhado:', error);
+                if (error instanceof Response) {
+                    error.text().then(errorMessage => {
+                        console.error('Resposta do servidor:', errorMessage);
+                        alert('Erro ao enviar o pedido. Por favor, tente novamente. Detalhes: ' + errorMessage);
+                    });
+                } else {
+                    alert('Erro ao enviar o pedido. Por favor, tente novamente. Detalhes: ' + error.message);
+                }
             })
             .finally(() => {
                 spinner.style.display = 'none';
