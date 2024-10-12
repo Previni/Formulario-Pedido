@@ -153,7 +153,7 @@
                 })))
             };
             
-            fetch('SUA_URL_DO_SHEET_BEST_AQUI', {
+            fetch('https://api.sheetbest.com/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96', {
                 method: 'POST',
                 mode: 'cors',
                 headers: {
