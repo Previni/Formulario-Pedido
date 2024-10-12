@@ -37,6 +37,7 @@
         .product-row {
             display: flex;
             margin-bottom: 10px;
+            align-items: center;
         }
         .product-row select {
             flex-grow: 1;
@@ -44,6 +45,20 @@
         }
         .product-row input {
             width: 80px;
+            margin-right: 10px;
+        }
+        .remove-product {
+            background-color: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         button {
             background-color: #4CAF50;
@@ -61,6 +76,14 @@
             display: none;
             text-align: center;
             padding: 10px;
+        }
+        #resumoPedido {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -82,15 +105,36 @@
             <div id="produtosContainer"></div>
             <button type="button" id="addProduto">Adicionar Produto</button>
             <br><br>
-            <button type="submit">Enviar Pedido</button>
+            <button type="submit">Revisar Pedido</button>
         </form>
-        <div id="spinner">Enviando...</div>
+        <div id="spinner">Carregando...</div>
+        <div id="resumoPedido"></div>
     </div>
 
     <script>
         const SHEET_BEST_URL = 'https://sheet.best/api/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96';
-        const postos = ['Posto A', 'Posto B', 'Posto C'];
-        const produtos = ['Produto 1', 'Produto 2', 'Produto 3', 'Produto 4'];
+        let postos = [];
+        let produtos = [];
+
+        async function carregarOpcoesDeplanilha() {
+            try {
+                const [postosResponse, produtosResponse] = await Promise.all([
+                    fetch(`${SHEET_BEST_URL}/tabs/Postos`),
+                    fetch(`${SHEET_BEST_URL}/tabs/Produtos`)
+                ]);
+
+                const postosData = await postosResponse.json();
+                const produtosData = await produtosResponse.json();
+
+                postos = postosData.slice(1).map(row => row.Posto).filter(Boolean);
+                produtos = produtosData.slice(1).map(row => row.Produto).filter(Boolean);
+
+                inicializarFormulario();
+            } catch (error) {
+                console.error('Erro ao carregar opções:', error);
+                alert('Erro ao carregar opções. Por favor, recarregue a página.');
+            }
+        }
 
         function inicializarFormulario() {
             const postoSelect = document.getElementById('posto');
@@ -129,9 +173,18 @@
             input.min = '1';
             input.value = '1';
             input.required = true;
+
+            const removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.className = 'remove-product';
+            removeButton.textContent = 'X';
+            removeButton.onclick = function() {
+                container.removeChild(row);
+            };
             
             row.appendChild(select);
             row.appendChild(input);
+            row.appendChild(removeButton);
             container.appendChild(row);
         }
         
@@ -139,12 +192,48 @@
         
         document.getElementById('pedidoForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            mostrarResumoPedido();
+        });
+
+        function mostrarResumoPedido() {
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const posto = document.getElementById('posto').value;
+            const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
+                produto: row.querySelector('select').value,
+                quantidade: row.querySelector('input').value
+            })).filter(p => p.produto && p.quantidade);
+
+            const resumoHTML = `
+                <h3>Resumo do Pedido</h3>
+                <p><strong>Nome:</strong> ${nome}</p>
+                <p><strong>Telefone:</strong> ${telefone}</p>
+                <p><strong>Posto:</strong> ${posto}</p>
+                <h4>Produtos:</h4>
+                <ul>
+                    ${produtos.map(p => `<li>${p.produto}: ${p.quantidade}</li>`).join('')}
+                </ul>
+                <button onclick="voltarParaEdicao()">Alterar Pedido</button>
+                <button onclick="enviarPedido()">Confirmar e Enviar</button>
+            `;
+
+            document.getElementById('resumoPedido').innerHTML = resumoHTML;
+            document.getElementById('resumoPedido').style.display = 'block';
+            document.getElementById('pedidoForm').style.display = 'none';
+        }
+
+        function voltarParaEdicao() {
+            document.getElementById('resumoPedido').style.display = 'none';
+            document.getElementById('pedidoForm').style.display = 'block';
+        }
+
+        function enviarPedido() {
             const spinner = document.getElementById('spinner');
             spinner.style.display = 'block';
-            
-            const nome = this.nome.value;
-            const telefone = this.telefone.value;
-            const posto = this.posto.value;
+
+            const nome = document.getElementById('nome').value;
+            const telefone = document.getElementById('telefone').value;
+            const posto = document.getElementById('posto').value;
             
             const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
                 Nome: nome,
@@ -152,7 +241,7 @@
                 Posto: posto,
                 Produto: row.querySelector('select').value,
                 Quantidade: row.querySelector('input').value
-            }));
+            })).filter(p => p.Produto && p.Quantidade);
             
             fetch(SHEET_BEST_URL, {
                 method: 'POST',
@@ -170,9 +259,11 @@
             .then(data => {
                 console.log('Sucesso:', data);
                 alert('Pedido enviado com sucesso!');
-                this.reset();
+                document.getElementById('pedidoForm').reset();
                 document.getElementById('produtosContainer').innerHTML = '';
                 adicionarLinhaProduto();
+                document.getElementById('resumoPedido').style.display = 'none';
+                document.getElementById('pedidoForm').style.display = 'block';
             })
             .catch((error) => {
                 console.error('Erro:', error);
@@ -181,9 +272,9 @@
             .finally(() => {
                 spinner.style.display = 'none';
             });
-        });
+        }
         
-        window.onload = inicializarFormulario;
+        window.onload = carregarOpcoesDeplanilha;
     </script>
 </body>
 </html>
