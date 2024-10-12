@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Formulário de Pedido Empresarial</title>
     <style>
         body {
@@ -89,7 +88,7 @@
     </div>
 
     <script>
-        // Simulação de dados (substitua isso pelos dados reais da sua planilha)
+        const SHEET_BEST_URL = 'https://sheet.best/api/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96';
         const postos = ['Posto A', 'Posto B', 'Posto C'];
         const produtos = ['Produto 1', 'Produto 2', 'Produto 3', 'Produto 4'];
 
@@ -147,15 +146,14 @@
                 Nome: this.nome.value,
                 Telefone: this.telefone.value,
                 Posto: this.posto.value,
-                Produtos: JSON.stringify(Array.from(document.querySelectorAll('.product-row')).map(row => ({
-                    produto: row.querySelector('select').value,
-                    quantidade: row.querySelector('input').value
-                })))
+                Produtos: Array.from(document.querySelectorAll('.product-row')).map(row => ({
+                    Produto: row.querySelector('select').value,
+                    Quantidade: row.querySelector('input').value
+                }))
             };
             
-            fetch('https://api.sheetbest.com/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96', {
+            fetch(SHEET_BEST_URL, {
                 method: 'POST',
-                mode: 'cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -163,34 +161,20 @@
             })
             .then(response => {
                 if (!response.ok) {
-                    throw response;
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                return response.text(); // Mudamos para text() em vez de json()
+                return response.json();
             })
             .then(data => {
-                console.log('Resposta completa:', data);
-                try {
-                    const jsonData = JSON.parse(data);
-                    console.log('Dados JSON:', jsonData);
-                    alert('Pedido enviado com sucesso!');
-                    this.reset();
-                    document.getElementById('produtosContainer').innerHTML = '';
-                    adicionarLinhaProduto();
-                } catch (e) {
-                    console.error('Erro ao parsear JSON:', e);
-                    alert('Pedido enviado, mas houve um problema ao processar a resposta.');
-                }
+                console.log('Sucesso:', data);
+                alert('Pedido enviado com sucesso!');
+                this.reset();
+                document.getElementById('produtosContainer').innerHTML = '';
+                adicionarLinhaProduto();
             })
             .catch((error) => {
-                console.error('Erro detalhado:', error);
-                if (error instanceof Response) {
-                    error.text().then(errorMessage => {
-                        console.error('Resposta do servidor:', errorMessage);
-                        alert('Erro ao enviar o pedido. Por favor, tente novamente. Detalhes: ' + errorMessage);
-                    });
-                } else {
-                    alert('Erro ao enviar o pedido. Por favor, tente novamente. Detalhes: ' + error.message);
-                }
+                console.error('Erro:', error);
+                alert('Erro ao enviar o pedido. Por favor, tente novamente.');
             })
             .finally(() => {
                 spinner.style.display = 'none';
