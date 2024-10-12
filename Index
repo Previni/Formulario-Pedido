@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
     <title>Formulário de Pedido Empresarial</title>
     <style>
         body {
@@ -25,6 +26,7 @@
         label {
             display: block;
             margin-bottom: 5px;
+            font-weight: bold;
         }
         input, select {
             width: 100%;
@@ -56,6 +58,11 @@
         button:hover {
             background-color: #45a049;
         }
+        #spinner {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -78,10 +85,11 @@
             <br><br>
             <button type="submit">Enviar Pedido</button>
         </form>
+        <div id="spinner">Enviando...</div>
     </div>
 
     <script>
-        // Simulação de dados (substitua isso por uma chamada de API real se necessário)
+        // Simulação de dados (substitua isso pelos dados reais da sua planilha)
         const postos = ['Posto A', 'Posto B', 'Posto C'];
         const produtos = ['Produto 1', 'Produto 2', 'Produto 3', 'Produto 4'];
 
@@ -132,21 +140,42 @@
         
         document.getElementById('pedidoForm').addEventListener('submit', function(e) {
             e.preventDefault();
+            const spinner = document.getElementById('spinner');
+            spinner.style.display = 'block';
+            
             const formData = {
-                nome: this.nome.value,
-                telefone: this.telefone.value,
-                posto: this.posto.value,
-                produtos: Array.from(document.querySelectorAll('.product-row')).map(row => ({
+                Nome: this.nome.value,
+                Telefone: this.telefone.value,
+                Posto: this.posto.value,
+                Produtos: JSON.stringify(Array.from(document.querySelectorAll('.product-row')).map(row => ({
                     produto: row.querySelector('select').value,
                     quantidade: row.querySelector('input').value
-                }))
+                })))
             };
             
-            console.log('Dados do pedido:', formData);
-            alert('Pedido enviado com sucesso! (Simulação)');
-            this.reset();
-            document.getElementById('produtosContainer').innerHTML = '';
-            adicionarLinhaProduto();
+            fetch('SUA_URL_DO_SHEET_BEST_AQUI', {
+                method: 'POST',
+                mode: 'cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Sucesso:', data);
+                alert('Pedido enviado com sucesso!');
+                this.reset();
+                document.getElementById('produtosContainer').innerHTML = '';
+                adicionarLinhaProduto();
+            })
+            .catch((error) => {
+                console.error('Erro:', error);
+                alert('Erro ao enviar o pedido. Por favor, tente novamente.');
+            })
+            .finally(() => {
+                spinner.style.display = 'none';
+            });
         });
         
         window.onload = inicializarFormulario;
