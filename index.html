@@ -20,7 +20,7 @@
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
         label {
             display: block;
@@ -28,41 +28,41 @@
             font-weight: bold;
         }
         input, select {
-            width: 100%;
+            width: 00%;
             padding: 8px;
-            border: 1px solid #ddd;
+            border: px solid #ddd;
             border-radius: 4px;
             box-sizing: border-box;
         }
         .product-row {
             display: flex;
-            margin-bottom: 10px;
+            margin-bottom: 0px;
             align-items: center;
         }
         .product-row select {
-            flex-grow: 1;
-            margin-right: 10px;
+            flex-grow: ;
+            margin-right: 0px;
         }
         .product-row input {
             width: 80px;
-            margin-right: 10px;
+            margin-right: 0px;
         }
         .remove-product {
             background-color: transparent;
             color: #000000;
             border: none;
-            font-size: 18px;
+            font-size: 8px;
             cursor: pointer;
             padding: 0 5px;
         }
         button {
             background-color: #4CAF50;
             color: white;
-            padding: 10px 15px;
+            padding: 0px 5px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 6px;
         }
         button:hover {
             background-color: #45a049;
@@ -70,14 +70,14 @@
         #spinner {
             display: none;
             text-align: center;
-            padding: 10px;
+            padding: 0px;
         }
         #resumoPedido {
             display: none;
             margin-top: 20px;
-            padding: 15px;
+            padding: 5px;
             background-color: #f9f9f9;
-            border: 1px solid #ddd;
+            border: px solid #ddd;
             border-radius: 4px;
         }
         .logo {
@@ -118,7 +118,7 @@
     </div>
 
     <script>
-        const SHEET_BEST_URL = 'https://sheet.best/api/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96';
+        const SHEET_BEST_URL = 'https://sheet.best/api/sheets/040d77fe-dfcc-4557-9270-8e0931f2d96';
         let postos = [];
         let produtos = [];
 
@@ -139,8 +139,8 @@
                 const produtosData = await produtosResponse.json();
                 console.log('Dados de Produtos:', produtosData);
 
-                postos = postosData.slice(1).map(row => row.Posto).filter(Boolean);
-                produtos = produtosData.slice(1).map(row => row.Produto).filter(Boolean);
+                postos = postosData.slice(0).map(row => row.Posto).filter(Boolean);
+                produtos = produtosData.slice(0).map(row => row.Produto).filter(Boolean);
 
                 console.log('Postos processados:', postos);
                 console.log('Produtos processados:', produtos);
