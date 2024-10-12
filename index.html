@@ -28,7 +28,7 @@
             font-weight: bold;
         }
         input, select {
-            width: 00%;
+            width: %;
             padding: 8px;
             border: px solid #ddd;
             border-radius: 4px;
@@ -36,15 +36,15 @@
         }
         .product-row {
             display: flex;
-            margin-bottom: 0px;
+            margin-bottom: px;
             align-items: center;
         }
         .product-row select {
             flex-grow: ;
-            margin-right: 0px;
+            margin-right: px;
         }
         .product-row input {
-            width: 80px;
+            width: 8px;
             margin-right: 0px;
         }
         .remove-product {
@@ -139,8 +139,8 @@
                 const produtosData = await produtosResponse.json();
                 console.log('Dados de Produtos:', produtosData);
 
-                postos = postosData.slice(0).map(row => row.Posto).filter(Boolean);
-                produtos = produtosData.slice(0).map(row => row.Produto).filter(Boolean);
+                postos = postosData.slice(1).map(row => row.Posto).filter(Boolean);
+                produtos = produtosData.slice(1).map(row => row.Produto).filter(Boolean);
 
                 console.log('Postos processados:', postos);
                 console.log('Produtos processados:', produtos);
