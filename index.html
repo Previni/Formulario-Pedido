@@ -156,6 +156,13 @@
 
         function inicializarFormulario() {
             const postoSelect = document.getElementById('posto');
+            
+            // Adiciona a opção "Selecione um posto"
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Selecione um posto';
+            postoSelect.appendChild(defaultOption);
+            
             postos.forEach(posto => {
                 const option = document.createElement('option');
                 option.value = option.textContent = posto;
