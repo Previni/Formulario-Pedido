@@ -142,22 +142,24 @@
             const spinner = document.getElementById('spinner');
             spinner.style.display = 'block';
             
-            const formData = {
-                Nome: this.nome.value,
-                Telefone: this.telefone.value,
-                Posto: this.posto.value,
-                Produtos: Array.from(document.querySelectorAll('.product-row')).map(row => ({
-                    Produto: row.querySelector('select').value,
-                    Quantidade: row.querySelector('input').value
-                }))
-            };
+            const nome = this.nome.value;
+            const telefone = this.telefone.value;
+            const posto = this.posto.value;
+            
+            const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
+                Nome: nome,
+                Telefone: telefone,
+                Posto: posto,
+                Produto: row.querySelector('select').value,
+                Quantidade: row.querySelector('input').value
+            }));
             
             fetch(SHEET_BEST_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(formData)
+                body: JSON.stringify(produtos)
             })
             .then(response => {
                 if (!response.ok) {
