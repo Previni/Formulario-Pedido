@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Pedido Empresarial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .product-row {
+            display: flex;
+            margin-bottom: 10px;
+        }
+        .product-row select {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .product-row input {
+            width: 80px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <form id="pedidoForm">
+            <div class="form-group">
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" name="nome" required>
+            </div>
+            <div class="form-group">
+                <label for="telefone">Telefone:</label>
+                <input type="tel" id="telefone" name="telefone" required>
+            </div>
+            <div class="form-group">
+                <label for="posto">Posto:</label>
+                <select id="posto" name="posto" required></select>
+            </div>
+            <div id="produtosContainer"></div>
+            <button type="button" id="addProduto">Adicionar Produto</button>
+            <br><br>
+            <button type="submit">Enviar Pedido</button>
+        </form>
+    </div>
+
+    <script>
+        // Simulação de dados (substitua isso por uma chamada de API real se necessário)
+        const postos = ['Posto A', 'Posto B', 'Posto C'];
+        const produtos = ['Produto 1', 'Produto 2', 'Produto 3', 'Produto 4'];
+
+        function inicializarFormulario() {
+            const postoSelect = document.getElementById('posto');
+            postos.forEach(posto => {
+                const option = document.createElement('option');
+                option.value = option.textContent = posto;
+                postoSelect.appendChild(option);
+            });
+            
+            adicionarLinhaProduto();
+        }
+        
+        function adicionarLinhaProduto() {
+            const container = document.getElementById('produtosContainer');
+            const row = document.createElement('div');
+            row.className = 'product-row';
+            
+            const select = document.createElement('select');
+            select.name = 'produto';
+            select.required = true;
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = 'Selecione um produto';
+            select.appendChild(defaultOption);
+            
+            produtos.forEach(produto => {
+                const option = document.createElement('option');
+                option.value = option.textContent = produto;
+                select.appendChild(option);
+            });
+            
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.name = 'quantidade';
+            input.min = '1';
+            input.value = '1';
+            input.required = true;
+            
+            row.appendChild(select);
+            row.appendChild(input);
+            container.appendChild(row);
+        }
+        
+        document.getElementById('addProduto').addEventListener('click', adicionarLinhaProduto);
+        
+        document.getElementById('pedidoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = {
+                nome: this.nome.value,
+                telefone: this.telefone.value,
+                posto: this.posto.value,
+                produtos: Array.from(document.querySelectorAll('.product-row')).map(row => ({
+                    produto: row.querySelector('select').value,
+                    quantidade: row.querySelector('input').value
+                }))
+            };
+            
+            console.log('Dados do pedido:', formData);
+            alert('Pedido enviado com sucesso! (Simulação)');
+            this.reset();
+            document.getElementById('produtosContainer').innerHTML = '';
+            adicionarLinhaProduto();
+        });
+        
+        window.onload = inicializarFormulario;
+    </script>
+</body>
+</html>
