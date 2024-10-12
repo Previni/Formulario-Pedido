@@ -113,35 +113,47 @@
 
     <script>
         const SHEET_BEST_URL = 'https://sheet.best/api/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96';
-        let Postos = [];
+        let postos = [];
         let produtos = [];
 
         async function carregarOpcoesDeplanilha() {
+            const spinner = document.getElementById('spinner');
+            spinner.style.display = 'block';
+            console.log('Iniciando carregamento de opções...');
             try {
-                const [PostosResponse, produtosResponse] = await Promise.all([
-                    fetch(`${SHEET_BEST_URL}/tabs/Postos`),
-                    fetch(`${SHEET_BEST_URL}/tabs/Produtos`)
-                ]);
+                console.log('Fazendo requisição para Postos...');
+                const postosResponse = await fetch(`${SHEET_BEST_URL}/tabs/Postos`);
+                console.log('Resposta de Postos recebida:', postosResponse);
+                const postosData = await postosResponse.json();
+                console.log('Dados de Postos:', postosData);
 
-                const PostosData = await PostosResponse.json();
+                console.log('Fazendo requisição para Produtos...');
+                const produtosResponse = await fetch(`${SHEET_BEST_URL}/tabs/Produtos`);
+                console.log('Resposta de Produtos recebida:', produtosResponse);
                 const produtosData = await produtosResponse.json();
+                console.log('Dados de Produtos:', produtosData);
 
-                Postos = PostosData.slice(1).map(row => row.Posto).filter(Boolean);
+                postos = postosData.slice(1).map(row => row.Posto).filter(Boolean);
                 produtos = produtosData.slice(1).map(row => row.Produto).filter(Boolean);
+
+                console.log('Postos processados:', postos);
+                console.log('Produtos processados:', produtos);
 
                 inicializarFormulario();
             } catch (error) {
                 console.error('Erro ao carregar opções:', error);
-                alert('Erro ao carregar opções. Por favor, recarregue a página.');
+                alert('Erro ao carregar opções. Por favor, verifique o console e recarregue a página.');
+            } finally {
+                spinner.style.display = 'none';
             }
         }
 
         function inicializarFormulario() {
-            const Postoselect = document.getElementById('posto');
-            Postos.forEach(posto => {
+            const postoSelect = document.getElementById('posto');
+            postos.forEach(posto => {
                 const option = document.createElement('option');
                 option.value = option.textContent = posto;
-                Postoselect.appendChild(option);
+                postoSelect.appendChild(option);
             });
             
             adicionarLinhaProduto();
