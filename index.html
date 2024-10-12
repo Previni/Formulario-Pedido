@@ -157,7 +157,6 @@
         function inicializarFormulario() {
             const postoSelect = document.getElementById('posto');
             
-            // Adiciona a opção "Selecione um posto"
             const defaultOption = document.createElement('option');
             defaultOption.value = '';
             defaultOption.textContent = 'Selecione um posto';
@@ -260,12 +259,16 @@
             const telefone = document.getElementById('telefone').value;
             const posto = document.getElementById('posto').value;
             
+            // Obter a data e hora atual
+            const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+            
             const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
                 Nome: nome,
                 Telefone: telefone,
                 Posto: posto,
                 Produto: row.querySelector('select').value,
-                Quantidade: row.querySelector('input').value
+                Quantidade: row.querySelector('input').value,
+                DataHora: dataHora
             })).filter(p => p.Produto && p.Quantidade);
             
             fetch(SHEET_BEST_URL, {
