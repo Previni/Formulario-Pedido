@@ -108,7 +108,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 20px; /* Adicionado espaçamento abaixo da tabela */
         }
         th, td {
             border: 1px solid #ddd;
@@ -120,17 +120,7 @@
             font-weight: bold;
         }
         .resumo-buttons {
-            margin-top: 20px;
-        }
-        .form-disabled {
-            opacity: 0.5;
-            pointer-events: none;
-        }
-        #formMessage {
-            text-align: center;
-            font-weight: bold;
-            margin-top: 20px;
-            color: #4CAF50;
+            margin-top: 20px; /* Adicionado espaçamento acima dos botões */
         }
     </style>
 </head>
@@ -139,7 +129,6 @@
         <div class="logo">
             <img src="https://raw.githubusercontent.com/Previni/Formulario-Pedido/main/logo%20previni.png" alt="Logo da Empresa">
         </div>
-        <div id="formMessage"></div>
         <form id="pedidoForm">
             <div class="form-group">
                 <label for="nome">Nome:</label>
@@ -170,30 +159,6 @@
         let postos = [];
         let produtos = [];
 
-        function isFormEnabled() {
-            const now = new Date();
-            const day = now.getDate();
-            const hour = now.getHours();
-
-            // Habilita o formulário do dia 1 ao dia 5 de cada mês, das 8h às 18h
-            return (day >= 1 && day <= 5) && (hour >= 8 && hour < 18);
-        }
-
-        function updateFormStatus() {
-            const form = document.getElementById('pedidoForm');
-            const message = document.getElementById('formMessage');
-
-            if (isFormEnabled()) {
-                form.classList.remove('form-disabled');
-                message.textContent = "Formulário disponível para preenchimento.";
-                message.style.color = "#4CAF50";
-            } else {
-                form.classList.add('form-disabled');
-                message.textContent = "Formulário indisponível no momento. Tente novamente entre os dias 1 e 5 do mês, das 8h às 18h.";
-                message.style.color = "#FF0000";
-            }
-        }
-
         async function carregarOpcoesDeplanilha() {
             const spinner = document.getElementById('spinner');
             spinner.style.display = 'block';
@@ -218,7 +183,6 @@
                 console.log('Produtos processados:', produtos);
 
                 inicializarFormulario();
-                updateFormStatus();
             } catch (error) {
                 console.error('Erro ao carregar opções:', error);
                 alert('Erro ao carregar opções. Por favor, verifique o console e recarregue a página.');
@@ -289,11 +253,7 @@
         
         document.getElementById('pedidoForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            if (isFormEnabled()) {
-                mostrarResumoPedido();
-            } else {
-                alert("O formulário não está disponível no momento.");
-            }
+            mostrarResumoPedido();
         });
 
         function mostrarResumoPedido() {
@@ -344,11 +304,6 @@
         }
 
         function enviarPedido() {
-            if (!isFormEnabled()) {
-                alert("O formulário não está disponível no momento.");
-                return;
-            }
-
             const spinner = document.getElementById('spinner');
             spinner.style.display = 'block';
 
@@ -400,9 +355,6 @@
         }
         
         window.onload = carregarOpcoesDeplanilha;
-
-        // Atualiza o status do formulário a cada minuto
-        setInterval(updateFormStatus, 60000);
     </script>
 
     <div class="signature">
