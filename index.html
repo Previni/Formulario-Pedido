@@ -120,13 +120,13 @@
             background-color: #f2f2f2;
             font-weight: bold;
         }
-        .resumo-buttons {
-            margin-top: 20px;
+        .button-group {
             display: flex;
             justify-content: space-between;
             gap: 10px;
+            margin-top: 20px;
         }
-        .resumo-buttons button {
+        .button-group button {
             flex: 1;
             min-width: 0;
             white-space: nowrap;
@@ -135,23 +135,15 @@
         }
         #limparDados {
             background-color: #f44336;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            font-family: 'Montserrat', Arial, sans-serif;
-            margin-top: 10px;
         }
         #limparDados:hover {
             background-color: #d32f2f;
         }
         @media (max-width: 400px) {
-            .resumo-buttons {
+            .button-group {
                 flex-direction: column;
             }
-            .resumo-buttons button {
+            .button-group button {
                 width: 100%;
             }
         }
@@ -180,10 +172,11 @@
                 <div id="produtosContainer"></div>
                 <button type="button" id="addProduto">Adicionar Produto</button>
             </div>
-            <br>
-            <button type="submit">Revisar Pedido</button>
+            <div class="button-group">
+                <button type="button" id="limparDados">Limpar Dados Salvos</button>
+                <button type="submit">Revisar Pedido</button>
+            </div>
         </form>
-        <button id="limparDados">Limpar Dados Salvos</button>
         <div id="spinner">Carregando...</div>
         <div id="resumoPedido"></div>
     </div>
@@ -333,7 +326,7 @@
                         `).join('')}
                     </tbody>
                 </table>
-                <div class="resumo-buttons">
+                <div class="button-group">
                     <button onclick="voltarParaEdicao()">Alterar Pedido</button>
                     <button onclick="enviarPedido()">Enviar</button>
                 </div>
