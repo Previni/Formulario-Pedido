@@ -108,6 +108,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            margin-bottom: 20px; /* Adicionado espaçamento abaixo da tabela */
         }
         th, td {
             border: 1px solid #ddd;
@@ -117,6 +118,9 @@
         th {
             background-color: #f2f2f2;
             font-weight: bold;
+        }
+        .resumo-buttons {
+            margin-top: 20px; /* Adicionado espaçamento acima dos botões */
         }
     </style>
 </head>
@@ -283,8 +287,10 @@
                         `).join('')}
                     </tbody>
                 </table>
-                <button onclick="voltarParaEdicao()">Alterar Pedido</button>
-                <button onclick="enviarPedido()">Confirmar e Enviar</button>
+                <div class="resumo-buttons">
+                    <button onclick="voltarParaEdicao()">Alterar Pedido</button>
+                    <button onclick="enviarPedido()">Confirmar e Enviar</button>
+                </div>
             `;
 
             document.getElementById('resumoPedido').innerHTML = resumoHTML;
