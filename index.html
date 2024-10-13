@@ -133,6 +133,20 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        #limparDados {
+            background-color: #f44336;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Montserrat', Arial, sans-serif;
+            margin-top: 10px;
+        }
+        #limparDados:hover {
+            background-color: #d32f2f;
+        }
         @media (max-width: 400px) {
             .resumo-buttons {
                 flex-direction: column;
@@ -169,6 +183,7 @@
             <br>
             <button type="submit">Revisar Pedido</button>
         </form>
+        <button id="limparDados">Limpar Dados Salvos</button>
         <div id="spinner">Carregando...</div>
         <div id="resumoPedido"></div>
     </div>
@@ -224,10 +239,10 @@
                 postoSelect.appendChild(option);
             });
             
-            adicionarLinhaProduto();
+            carregarDadosSalvos();
         }
         
-        function adicionarLinhaProduto() {
+        function adicionarLinhaProduto(produtoSalvo = null) {
             const container = document.getElementById('produtosContainer');
             const row = document.createElement('div');
             row.className = 'product-row';
@@ -260,15 +275,27 @@
             removeButton.textContent = '×';
             removeButton.onclick = function() {
                 container.removeChild(row);
+                salvarDadosFormulario();
             };
             
             row.appendChild(select);
             row.appendChild(input);
             row.appendChild(removeButton);
             container.appendChild(row);
+
+            if (produtoSalvo) {
+                select.value = produtoSalvo.produto;
+                input.value = produtoSalvo.quantidade;
+            }
+
+            select.addEventListener('change', salvarDadosFormulario);
+            input.addEventListener('input', salvarDadosFormulario);
         }
         
-        document.getElementById('addProduto').addEventListener('click', adicionarLinhaProduto);
+        document.getElementById('addProduto').addEventListener('click', () => {
+            adicionarLinhaProduto();
+            salvarDadosFormulario();
+        });
         
         document.getElementById('pedidoForm').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -357,9 +384,7 @@
             .then(data => {
                 console.log('Sucesso:', data);
                 alert('Pedido enviado com sucesso!');
-                document.getElementById('pedidoForm').reset();
-                document.getElementById('produtosContainer').innerHTML = '';
-                adicionarLinhaProduto();
+                limparDadosSalvos();
                 document.getElementById('resumoPedido').style.display = 'none';
                 document.getElementById('pedidoForm').style.display = 'block';
             })
@@ -371,6 +396,53 @@
                 spinner.style.display = 'none';
             });
         }
+        
+        function salvarDadosFormulario() {
+            const formData = {
+                nome: document.getElementById('nome').value,
+                telefone: document.getElementById('telefone').value,
+                posto: document.getElementById('posto').value,
+                produtos: Array.from(document.querySelectorAll('.product-row')).map(row => ({
+                    produto: row.querySelector('select').value,
+                    quantidade: row.querySelector('input').value
+                }))
+            };
+            localStorage.setItem('pedidoFormData', JSON.stringify(formData));
+        }
+
+        function carregarDadosSalvos() {
+            const savedData = localStorage.getItem('pedidoFormData');
+            if (savedData) {
+                const formData = JSON.parse(savedData);
+                document.getElementById('nome').value = formData.nome || '';
+                document.getElementById('telefone').value = formData.telefone || '';
+                document.getElementById('posto').value = formData.posto || '';
+                
+                document.getElementById('produtosContainer').innerHTML = '';
+                if (formData.produtos && formData.produtos.length > 0) {
+                    formData.produtos.forEach(produto => adicionarLinhaProduto(produto));
+                } else {
+                    adicionarLinhaProduto();
+                }
+            } else {
+                adicionarLinhaProduto();
+            }
+        }
+
+        function limparDadosSalvos() {
+            localStorage.removeItem('pedidoFormData');
+            document.getElementById('pedidoForm').reset();
+            document.getElementById('produtosContainer').innerHTML = '';
+            adicionarLinhaProduto();
+            alert('Dados salvos foram limpos. Você pode começar um novo pedido.');
+        }
+
+        document.getElementById('limparDados').addEventListener('click', limparDadosSalvos);
+
+        // Adicionar event listeners para salvar dados automaticamente
+        ['nome', 'telefone', 'posto'].forEach(id => {
+            document.getElementById(id).addEventListener('input', salvarDadosFormulario);
+        });
         
         window.onload = carregarOpcoesDeplanilha;
     </script>
