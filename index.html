@@ -108,7 +108,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            margin-bottom: 20px; /* Adicionado espaçamento abaixo da tabela */
+            margin-bottom: 20px;
         }
         th, td {
             border: 1px solid #ddd;
@@ -120,7 +120,25 @@
             font-weight: bold;
         }
         .resumo-buttons {
-            margin-top: 20px; /* Adicionado espaçamento acima dos botões */
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .resumo-buttons button {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        @media (max-width: 400px) {
+            .resumo-buttons {
+                flex-direction: column;
+            }
+            .resumo-buttons button {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -311,7 +329,6 @@
             const telefone = document.getElementById('telefone').value;
             const posto = document.getElementById('posto').value;
             
-            // Obter a data e hora atual
             const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
             
             const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
