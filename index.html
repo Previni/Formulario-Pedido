@@ -273,7 +273,7 @@
                 nome,
                 telefone,
                 posto,
-                produtos,
+                produtos: JSON.stringify(produtos),
                 timestamp: new Date().toISOString()
             };
 
@@ -282,9 +282,9 @@
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: JSON.stringify(data)
+                    body: new URLSearchParams(data)
                 });
                 
                 alert('Pedido enviado com sucesso!');
