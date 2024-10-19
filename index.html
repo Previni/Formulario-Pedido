@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+<!DOCTYPE html><html lang="pt-BR">
 <head>
     <link rel="icon" type="image/png" href="favicon previni.png">
     <meta charset="UTF-8">
@@ -174,144 +173,272 @@
             </div>
             <div class="button-group">
                 <button type="button" id="limparDados">Limpar Dados</button>
-                <button type="submit">Enviar Pedido</button>
+                <button type="submit">Revisar Pedido</button>
             </div>
         </form>
         <div id="spinner">Carregando...</div>
-    </div>
+        <div id="resumoPedido"></div>
+    </div><script>
+    const SHEET_BEST_URL = 'https://sheet.best/api/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96';
+    let postos = [];
+    let produtos = [];
 
-    <script>
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxnAHUBP3UOIoM8AaNy8N588BGaMhl7Cb1CGcg-ciNYT02mzG5Qhg4uKfYxeucav8s4qQ/exec';
-        let postos = [];
-        let produtos = [];
+    async function carregarOpcoesDeplanilha() {
+        const spinner = document.getElementById('spinner');
+        spinner.style.display = 'block';
+        console.log('Iniciando carregamento de opções...');
+        try {
+            console.log('Fazendo requisição para Postos...');
+            const postosResponse = await fetch(`${SHEET_BEST_URL}/tabs/Postos`);
+            console.log('Resposta de Postos recebida:', postosResponse);
+            const postosData = await postosResponse.json();
+            console.log('Dados de Postos:', postosData);
 
-        async function carregarOpcoesDeplanilha() {
-            const spinner = document.getElementById('spinner');
-            spinner.style.display = 'block';
-            try {
-                const response = await fetch(SCRIPT_URL + '?action=getOptions');
-                const data = await response.json();
-                postos = data.postos;
-                produtos = data.produtos;
-                inicializarFormulario();
-            } catch (error) {
-                console.error('Erro ao carregar opções:', error);
-                alert('Erro ao carregar opções. Por favor, recarregue a página.');
-            } finally {
-                spinner.style.display = 'none';
-            }
+            console.log('Fazendo requisição para Produtos...');
+            const produtosResponse = await fetch(`${SHEET_BEST_URL}/tabs/Produtos`);
+            console.log('Resposta de Produtos recebida:', produtosResponse);
+            const produtosData = await produtosResponse.json();
+            console.log('Dados de Produtos:', produtosData);
+
+            postos = postosData.slice(1).map(row => row.Posto).filter(Boolean);
+            produtos = produtosData.slice(1).map(row => row.Produto).filter(Boolean);
+
+            console.log('Postos processados:', postos);
+            console.log('Produtos processados:', produtos);
+
+            inicializarFormulario();
+        } catch (error) {
+            console.error('Erro ao carregar opções:', error);
+            alert('Erro ao carregar opções. Por favor, verifique o console e recarregue a página.');
+        } finally {
+            spinner.style.display = 'none';
         }
+    }
 
-        function inicializarFormulario() {
-            const postoSelect = document.getElementById('posto');
-            postoSelect.innerHTML = '<option value="">Selecione um posto</option>';
-            postos.forEach(posto => {
-                const option = document.createElement('option');
-                option.value = option.textContent = posto;
-                postoSelect.appendChild(option);
-            });
-            adicionarLinhaProduto();
-        }
+    function inicializarFormulario() {
+        const postoSelect = document.getElementById('posto');
         
-        function adicionarLinhaProduto() {
-            const container = document.getElementById('produtosContainer');
-            const row = document.createElement('div');
-            row.className = 'product-row';
-            
-            const select = document.createElement('select');
-            select.name = 'produto';
-            select.required = true;
-            select.innerHTML = '<option value="">Selecione um produto</option>';
-            produtos.forEach(produto => {
-                const option = document.createElement('option');
-                option.value = option.textContent = produto;
-                select.appendChild(option);
-            });
-            
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.name = 'quantidade';
-            input.min = '1';
-            input.value = '1';
-            input.required = true;
-
-            const removeButton = document.createElement('button');
-            removeButton.type = 'button';
-            removeButton.className = 'remove-product';
-            removeButton.textContent = '×';
-            removeButton.onclick = function() {
-                container.removeChild(row);
-            };
-            
-            row.appendChild(select);
-            row.appendChild(input);
-            row.appendChild(removeButton);
-            container.appendChild(row);
-        }
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Selecione um posto';
+        postoSelect.appendChild(defaultOption);
         
-        document.getElementById('addProduto').addEventListener('click', adicionarLinhaProduto);
-        
-        document.getElementById('pedidoForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            enviarPedido();
+        postos.forEach(posto => {
+            const option = document.createElement('option');
+            option.value = option.textContent = posto;
+            postoSelect.appendChild(option);
         });
+        
+        carregarDadosSalvos();
+    }
+    
+    function adicionarLinhaProduto(produtoSalvo = null) {
+        const container = document.getElementById('produtosContainer');
+        const row = document.createElement('div');
+        row.className = 'product-row';
+        
+        const select = document.createElement('select');
+        select.name = 'produto';
+        select.required = true;
+        
+        const defaultOption = document.createElement('option');
+        defaultOption.value = '';
+        defaultOption.textContent = 'Selecione um produto';
+        select.appendChild(defaultOption);
+        
+        produtos.forEach(produto => {
+            const option = document.createElement('option');
+            option.value = option.textContent = produto;
+            select.appendChild(option);
+        });
+        
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.name = 'quantidade';
+        input.min = '1';
+        input.value = '1';
+        input.required = true;
 
-        async function enviarPedido() {
-            const spinner = document.getElementById('spinner');
-            spinner.style.display = 'block';
+        const removeButton = document.createElement('button');
+        removeButton.type = 'button';
+        removeButton.className = 'remove-product';
+        removeButton.textContent = '×';
+        removeButton.onclick = function() {
+            container.removeChild(row);
+            salvarDadosFormulario();
+        };
+        
+        row.appendChild(select);
+        row.appendChild(input);
+        row.appendChild(removeButton);
+        container.appendChild(row);
 
-            const nome = document.getElementById('nome').value;
-            const telefone = document.getElementById('telefone').value;
-            const posto = document.getElementById('posto').value;
-            
-            const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
+        if (produtoSalvo) {
+            select.value = produtoSalvo.produto;
+            input.value = produtoSalvo.quantidade;
+        }
+
+        select.addEventListener('change', salvarDadosFormulario);
+        input.addEventListener('input', salvarDadosFormulario);
+    }
+    
+    document.getElementById('addProduto').addEventListener('click', () => {
+        adicionarLinhaProduto();
+        salvarDadosFormulario();
+    });
+    
+    document.getElementById('pedidoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        mostrarResumoPedido();
+    });
+
+    function mostrarResumoPedido() {
+        const nome = document.getElementById('nome').value;
+        const telefone = document.getElementById('telefone').value;
+        const posto = document.getElementById('posto').value;
+        const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
+            produto: row.querySelector('select').value,
+            quantidade: row.querySelector('input').value
+        })).filter(p => p.produto && p.quantidade);
+
+        const resumoHTML = `
+            <h3>Resumo do Pedido</h3>
+            <p><strong>Nome:</strong> ${nome}</p>
+            <p><strong>Telefone:</strong> ${telefone}</p>
+            <p><strong>Posto:</strong> ${posto}</p>
+            <h4>Produtos:</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>Quantidade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${produtos.map(p => `
+                        <tr>
+                            <td>${p.produto}</td>
+                            <td>${p.quantidade}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+            <div class="button-group">
+                <button onclick="voltarParaEdicao()">Alterar Pedido</button>
+                <button onclick="enviarPedido()">Enviar</button>
+            </div>
+        `;
+
+        document.getElementById('resumoPedido').innerHTML = resumoHTML;
+        document.getElementById('resumoPedido').style.display = 'block';
+        document.getElementById('pedidoForm').style.display = 'none';
+    }
+
+    function voltarParaEdicao() {
+        document.getElementById('resumoPedido').style.display = 'none';
+        document.getElementById('pedidoForm').style.display = 'block';
+    }
+
+    function enviarPedido() {
+        const spinner = document.getElementById('spinner');
+        spinner.style.display = 'block';
+
+        const nome = document.getElementById('nome').value;
+        const telefone = document.getElementById('telefone').value;
+        const posto = document.getElementById('posto').value;
+        
+        const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        
+        const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
+            Nome: nome,
+            Telefone: telefone,
+            Posto: posto,
+            Produto: row.querySelector('select').value,
+            Quantidade: row.querySelector('input').value,
+            DataHora: dataHora
+        })).filter(p => p.Produto && p.Quantidade);
+        
+        fetch(SHEET_BEST_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(produtos)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Sucesso:', data);
+            alert('Pedido enviado com sucesso!');
+            limparDadosSalvos();
+            document.getElementById('resumoPedido').style.display = 'none';
+            document.getElementById('pedidoForm').style.display = 'block';
+        })
+        .catch((error) => {
+            console.error('Erro:', error);
+            alert('Erro ao enviar o pedido. Por favor, tente novamente.');
+        })
+        .finally(() => {
+            spinner.style.display = 'none';
+        });
+    }
+    
+    function salvarDadosFormulario() {
+        const formData = {
+            nome: document.getElementById('nome').value,
+            telefone: document.getElementById('telefone').value,
+            posto: document.getElementById('posto').value,
+            produtos: Array.from(document.querySelectorAll('.product-row')).map(row => ({
                 produto: row.querySelector('select').value,
                 quantidade: row.querySelector('input').value
-            })).filter(p => p.produto && p.quantidade);
+            }))
+        };
+        localStorage.setItem('pedidoFormData', JSON.stringify(formData));
+    }
 
-            const data = {
-                nome,
-                telefone,
-                posto,
-                produtos: JSON.stringify(produtos),
-                timestamp: new Date().toISOString()
-            };
-
-            try {
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: new URLSearchParams(data)
-                });
-                
-                // Como estamos usando 'no-cors', não podemos ler a resposta
-                // Então, assumimos que foi bem-sucedido se não houver erro
-                alert('Pedido enviado com sucesso!');
-                document.getElementById('pedidoForm').reset();
-                document.getElementById('produtosContainer').innerHTML = '';
-                adicionarLinhaProduto();
-            } catch (error) {
-                console.error('Erro:', error);
-                alert('Erro ao enviar o pedido. Por favor, tente novamente.');
-            } finally {
-                spinner.style.display = 'none';
-            }
-        }
-
-        document.getElementById('limparDados').addEventListener('click', function() {
-            document.getElementById('pedidoForm').reset();
+    function carregarDadosSalvos() {
+        const savedData = localStorage.getItem('pedidoFormData');
+        if (savedData) {
+            const formData = JSON.parse(savedData);
+            document.getElementById('nome').value = formData.nome || '';
+            document.getElementById('telefone').value = formData.telefone || '';
+            document.getElementById('posto').value = formData.posto || '';
+            
             document.getElementById('produtosContainer').innerHTML = '';
+            if (formData.produtos && formData.produtos.length > 0) {
+                formData.produtos.forEach(produto => adicionarLinhaProduto(produto));
+            } else {
+                adicionarLinhaProduto();
+            }
+        } else {
             adicionarLinhaProduto();
-        });
-        
-        window.onload = carregarOpcoesDeplanilha;
-    </script>
+        }
+    }
 
-    <div class="signature">
-        Feito por <a href="https://www.linkedin.com/in/gabriel-aparecido06/" target="_blank">Gabriel Aparecido - Outubro/2024</a>
-    </div>
+    function limparDadosSalvos() {
+        localStorage.removeItem('pedidoFormData');
+        document.getElementById('pedidoForm').reset();
+        document.getElementById('produtosContainer').innerHTML = '';
+        adicionarLinhaProduto();
+        alert('Dados salvos foram limpos. Você pode começar um novo pedido.');
+    }
+
+    document.getElementById('limparDados').addEventListener('click', limparDadosSalvos);
+
+    // Adicionar event listeners para salvar dados automaticamente
+    ['nome', 'telefone', 'posto'].forEach(id => {
+        document.getElementById(id).addEventListener('input', salvarDadosFormulario);
+    });
+    
+    window.onload = carregarOpcoesDeplanilha;
+</script>
+
+<div class="signature">
+    Feito por <a href="https://www.linkedin.com/in/gabriel-aparecido06/" target="_blank">Gabriel Aparecido - Outubro/2024</a>
+</div>
 </body>
 </html>
