@@ -1,165 +1,439 @@
-body {
-    font-family: 'Montserrat', Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f0f0f0;
-}
+<!DOCTYPE html><html lang="pt-BR"><head>
+    <link rel="icon" type="image/png" href="favicon previni.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulário de Pedido</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .form-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        .product-row {
+            display: flex;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        .product-row select {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+        .product-row input {
+            width: 80px;
+            margin-right: 10px;
+        }
+        .remove-product {
+            background-color: transparent;
+            color: #000000;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 0 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-family: 'Montserrat', Arial, sans-serif;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #spinner {
+            display: none;
+            text-align: center;
+            padding: 10px;
+        }
+        #resumoPedido {
+            display: none;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            max-width: 200px;
+            height: auto;
+        }
+        .signature {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+        }
+        .signature a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .signature a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .button-group button {
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #limparDados {
+            background-color: #f44336;
+        }
+        #limparDados:hover {
+            background-color: #d32f2f;
+        }
+        @media (max-width: 400px) {
+            .button-group {
+                flex-direction: column;
+            }
+            .button-group button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <div class="logo">
+            <img src="https://raw.githubusercontent.com/Previni/Formulario-Pedido/main/logo%20previni.png" alt="Logo da Empresa">
+        </div>
+        <form id="pedidoForm">
+            <div class="form-group">
+                <label for="nome">Nome:</label>
+                <input type="text" id="nome" name="nome" required>
+            </div>
+            <div class="form-group">
+                <label for="telefone">Telefone:</label>
+                <input type="tel" id="telefone" name="telefone" required>
+            </div>
+            <div class="form-group">
+                <label for="posto">Posto:</label>
+                <select id="posto" name="posto" required></select>
+            </div>
+            <div class="form-group">
+                <label>Produtos:</label>
+                <div id="produtosContainer"></div>
+                <button type="button" id="addProduto">Adicionar Produto</button>
+            </div>
+            <div class="button-group">
+                <button type="button" id="limparDados">Limpar Dados</button>
+                <button type="submit">Revisar Pedido</button>
+            </div>
+        </form>
+        <div id="spinner">Carregando...</div>
+        <div id="resumoPedido"></div>
+    </div><script>
+    const SHEET_BEST_URL = 'https://sheet.best/api/sheets/040d77fe-dfcc-4557-9270-8e01931f2d96';
+    let postos = [];
+    let produtos = [];async function carregarOpcoesDeplanilha() {
+    const spinner = document.getElementById('spinner');
+    spinner.style.display = 'block';
+    console.log('Iniciando carregamento de opções...');
+    try {
+        console.log('Fazendo requisição para Postos...');
+        const postosResponse = await fetch(`${SHEET_BEST_URL}/tabs/Postos`);
+        console.log('Resposta de Postos recebida:', postosResponse);
+        const postosData = await postosResponse.json();
+        console.log('Dados de Postos:', postosData);
 
-.form-container {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    max-width: 500px;
-    margin: 0 auto;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
+        console.log('Fazendo requisição para Produtos...');
+        const produtosResponse = await fetch(`${SHEET_BEST_URL}/tabs/Produtos`);
+        console.log('Resposta de Produtos recebida:', produtosResponse);
+        const produtosData = await produtosResponse.json();
+        console.log('Dados de Produtos:', produtosData);
 
-.form-group {
-    margin-bottom: 15px;
-}
+        postos = postosData.slice(1).map(row => row.Posto).filter(Boolean);
+        produtos = produtosData.slice(1).map(row => row.Produto).filter(Boolean);
 
-label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
+        console.log('Postos processados:', postos);
+        console.log('Produtos processados:', produtos);
 
-input, select {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    box-sizing: border-box;
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-.product-row {
-    display: flex;
-    margin-bottom: 10px;
-    align-items: center;
-}
-
-.product-row select {
-    flex-grow: 1;
-    margin-right: 10px;
-}
-
-.product-row input {
-    width: 80px;
-    margin-right: 10px;
-}
-
-.remove-product {
-    background-color: transparent;
-    color: #000000;
-    border: none;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 0 5px;
-}
-
-button {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    font-family: 'Montserrat', Arial, sans-serif;
-}
-
-button:hover {
-    background-color: #45a049;
-}
-
-#spinner {
-    display: none;
-    text-align: center;
-    padding: 10px;
-}
-
-#resumoPedido {
-    display: none;
-    margin-top: 20px;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-}
-
-.logo {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.logo img {
-    max-width: 200px;
-    height: auto;
-}
-
-.signature {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 12px;
-    color: #666;
-}
-
-.signature a {
-    color: #4CAF50;
-    text-decoration: none;
-}
-
-.signature a:hover {
-    text-decoration: underline;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    margin-bottom: 20px;
-}
-
-th, td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    text-align: left;
-}
-
-th {
-    background-color: #f2f2f2;
-    font-weight: bold;
-}
-
-.button-group {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-.button-group button {
-    flex: 1;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-#limparDados {
-    background-color: #f44336;
-}
-
-#limparDados:hover {
-    background-color: #d32f2f;
-}
-
-@media (max-width: 400px) {
-    .button-group {
-        flex-direction: column;
+        inicializarFormulario();
+    } catch (error) {
+        console.error('Erro ao carregar opções:', error);
+        alert('Erro ao carregar opções. Por favor, verifique o console e recarregue a página.');
+    } finally {
+        spinner.style.display = 'none';
     }
-    .button-group button {
-        width: 100%;
+}
+
+function inicializarFormulario() {
+    const postoSelect = document.getElementById('posto');
+    
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Selecione um posto';
+    postoSelect.appendChild(defaultOption);
+    
+    postos.forEach(posto => {
+        const option = document.createElement('option');
+        option.value = option.textContent = posto;
+        postoSelect.appendChild(option);
+    });
+    
+    carregarDadosSalvos();
+}
+
+function adicionarLinhaProduto(produtoSalvo = null) {
+    const container = document.getElementById('produtosContainer');
+    const row = document.createElement('div');
+    row.className = 'product-row';
+    
+    const select = document.createElement('select');
+    select.name = 'produto';
+    select.required = true;
+    
+    const defaultOption = document.createElement('option');
+    defaultOption.value = '';
+    defaultOption.textContent = 'Selecione um produto';
+    select.appendChild(defaultOption);
+    
+    produtos.forEach(produto => {
+        const option = document.createElement('option');
+        option.value = option.textContent = produto;
+        select.appendChild(option);
+    });
+    
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.name = 'quantidade';
+    input.min = '1';
+    input.value = '1';
+    input.required = true;
+
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.className = 'remove-product';
+    removeButton.textContent = '×';
+    removeButton.onclick = function() {
+        container.removeChild(row);
+        salvarDadosFormulario();
+    };
+    
+    row.appendChild(select);
+    row.appendChild(input);
+    row.appendChild(removeButton);
+    container.appendChild(row);
+
+    if (produtoSalvo) {
+        select.value = produtoSalvo.produto;
+        input.value = produtoSalvo.quantidade;
+    }
+
+    select.addEventListener('change', salvarDadosFormulario);
+    input.addEventListener('input', salvarDadosFormulario);
+}
+
+document.getElementById('addProduto').addEventListener('click', () => {
+    adicionarLinhaProduto();
+    salvarDadosFormulario();
+});
+
+document.getElementById('pedidoForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    mostrarResumoPedido();
+});
+
+function mostrarResumoPedido() {
+    const nome = document.getElementById('nome').value;
+    const telefone = document.getElementById('telefone').value;
+    const posto = document.getElementById('posto').value;
+    const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
+        produto: row.querySelector('select').value,
+        quantidade: row.querySelector('input').value
+    })).filter(p => p.produto && p.quantidade);
+
+    const resumoHTML = `
+        <h3>Resumo do Pedido</h3>
+        <p><strong>Nome:</strong> ${nome}</p>
+        <p><strong>Telefone:</strong> ${telefone}</p>
+        <p><strong>Posto:</strong> ${posto}</p>
+        <h4>Produtos:</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Produto</th>
+                    <th>Quantidade</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${produtos.map(p => `
+                    <tr>
+                        <td>${p.produto}</td>
+                        <td>${p.quantidade}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+        <div class="button-group">
+            <button onclick="voltarParaEdicao()">Alterar Pedido</button>
+            <button onclick="enviarPedido()">Enviar</button>
+        </div>
+    `;
+
+    document.getElementById('resumoPedido').innerHTML = resumoHTML;
+    document.getElementById('resumoPedido').style.display = 'block';
+    document.getElementById('pedidoForm').style.display = 'none';
+}
+
+function voltarParaEdicao() {
+    document.getElementById('resumoPedido').style.display = 'none';
+    document.getElementById('pedidoForm').style.display = 'block';
+}
+
+function enviarPedido() {
+    const spinner = document.getElementById('spinner');
+    spinner.style.display = 'block';
+
+    const nome = document.getElementById('nome').value;
+    const telefone = document.getElementById('telefone').value;
+    const posto = document.getElementById('posto').value;
+    
+    const dataHora = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+    
+    const produtos = Array.from(document.querySelectorAll('.product-row')).map(row => ({
+        Nome: nome,
+        Telefone: telefone,
+        Posto: posto,
+        Produto: row.querySelector('select').value,
+        Quantidade: row.querySelector('input').value,
+        DataHora: dataHora
+    })).filter(p => p.Produto && p.Quantidade);
+    
+    fetch(SHEET_BEST_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(produtos)
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Sucesso:', data);
+        alert('Pedido enviado com sucesso!');
+        limparDadosSalvos();
+        document.getElementById('resumoPedido').style.display = 'none';
+        document.getElementById('pedidoForm').style.display = 'block';
+    })
+    .catch((error) => {
+        console.error('Erro:', error);
+        alert('Erro ao enviar o pedido. Por favor, tente novamente.');
+    })
+    .finally(() => {
+        spinner.style.display = 'none';
+    });
+}
+
+function salvarDadosFormulario() {
+    const formData = {
+        nome: document.getElementById('nome').value,
+        telefone: document.getElementById('telefone').value,
+        posto: document.getElementById('posto').value,
+        produtos: Array.from(document.querySelectorAll('.product-row')).map(row => ({
+            produto: row.querySelector('select').value,
+            quantidade: row.querySelector('input').value
+        }))
+    };
+    localStorage.setItem('pedidoFormData', JSON.stringify(formData));
+}
+
+function carregarDadosSalvos() {
+    const savedData = localStorage.getItem('pedidoFormData');
+    if (savedData) {
+        const formData = JSON.parse(savedData);
+        document.getElementById('nome').value = formData.nome || '';
+        document.getElementById('telefone').value = formData.telefone || '';
+        document.getElementById('posto').value = formData.posto || '';
+        
+        document.getElementById('produtosContainer').innerHTML = '';
+        if (formData.produtos && formData.produtos.length > 0) {
+            formData.produtos.forEach(produto => adicionarLinhaProduto(produto));
+        } else {
+            adicionarLinhaProduto();
+        }
+    } else {
+        adicionarLinhaProduto();
     }
 }
+
+function limparDadosSalvos() {
+    localStorage.removeItem('pedidoFormData');
+    document.getElementById('pedidoForm').reset();
+    document.getElementById('produtosContainer').innerHTML = '';
+    adicionarLinhaProduto();
+    alert('Dados salvos foram limpos. Você pode começar um novo pedido.');
+}
+
+document.getElementById('limparDados').addEventListener('click', limparDadosSalvos);
+
+// Adicionar event listeners para salvar dados automaticamente
+['nome', 'telefone', 'posto'].forEach(id => {
+    document.getElementById(id).addEventListener('input', salvarDadosFormulario);
+});
+
+window.onload = carregarOpcoesDeplanilha;
+</script><div class="signature">
+    Feito por <a href="https://www.linkedin.com/in/gabriel-aparecido06/" target="_blank">Gabriel Aparecido - Outubro/2024</a>
+</div>
+</body>
+</html>
