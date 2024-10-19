@@ -287,6 +287,8 @@
                     body: new URLSearchParams(data)
                 });
                 
+                // Como estamos usando 'no-cors', não podemos ler a resposta
+                // Então, assumimos que foi bem-sucedido se não houver erro
                 alert('Pedido enviado com sucesso!');
                 document.getElementById('pedidoForm').reset();
                 document.getElementById('produtosContainer').innerHTML = '';
